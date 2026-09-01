@@ -1,0 +1,13 @@
+# Godot 4+
+.godot/
+/android/
+export_presets.cfg
+
+# Dart tooling for the offline level pipeline
+tools/reference_dart/.dart_tool/
+tools/reference_dart/pubspec.lock
+tools/reference_dart/*.log
+
+# data/levels.json and tests/data/*.json are intentionally committed: the pack is
+# the shipped content, and the golden fixtures are the evidence that the port
+# matches the Dart original.
