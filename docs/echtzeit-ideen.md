@@ -63,10 +63,50 @@ Der Magnet zieht den Ball nicht in seinen Mittelpunkt, sondern auf eine
 Schleudern. Größter Ausdruckszuwachs pro Zeile Code im ganzen Dokument — und es
 löst nebenbei das Problem, dass ein Anziehmagnet den Ball bei sich parkt.
 
-**Magnete während des Laufs ziehen** · M
+**Geplante Magnetbahn** · M — **gebaut** (Level 8 „Fahrt“)
+Umgesetzt als gerade Pendelstrecke, wie unten empfohlen: Drücken setzt, Ziehen
+zeichnet, ein Klick ohne Ziehen lässt den Magneten stehen. Der Polygonzug ist
+weiterhin offen. Was sich beim Bauen bestätigt hat, steht in `CLAUDE.md`:
+Determinismus kostenlos, Aufwand fast ausschliesslich in der Oberfläche.
+
+**Geplante Magnetbahn — ursprüngliche Bewertung**
+In der Planung zeichnest du dem Magneten einen Weg; im Lauf fährt er ihn mit
+konstanter Geschwindigkeit ab.
+*Warum:* Aus „wo steht der Magnet" wird „wo ist er **wann**". Das ist eine echte
+zusätzliche Achse, und sie wertet die Haltezeiten *auf*, statt sie zu ersetzen:
+Halten bei Tick 30 bedeutet etwas anderes als bei Tick 90, weil der Magnet
+inzwischen woanders steht. Beide Fragen bleiben unabhängig voneinander.
+*Determinismus:* praktisch kostenlos. Die Bahn ist Planungsdaten von **vor**
+Tick 0, keine Eingabe — die Regel „eine Bitmaske pro Tick" bleibt wörtlich
+unberührt, und ein Magnet ohne Bahn ist bitgleich der statische von heute, also
+bleiben alle `PAR_FINGERPRINTS` gültig. Position als **reine Funktion des Ticks**
+rechnen (Streckenlängen einmal beim Setup), nicht pro Tick aufaddieren, sonst
+driftet eine Bahn über lange Läufe. `sqrt` fürs Normalisieren ist erlaubt,
+`sin` nicht.
+*Kosten:* die Oberfläche, nicht die Simulation. Ein Bahn-Editor braucht
+Wegpunkte, Rückgängig, Geschwindigkeit und eine Anzeige, wo der Magnet wann
+steht — und das in der Schicht ohne Testabdeckung. **Zuerst die gerade
+Pendelstrecke bauen:** Magnet setzen, einmal ziehen, fertig. Das ist eine
+zusätzliche Mausgeste und dieselbe Dreieckswelle wie `MoverSpec`. Den Polygonzug
+erst, wenn sich das gut spielt.
+*Achtung 1:* Eine Live-Vorschau der Ballbahn beim Editieren ist verlockend (die
+Simulation kostet Millisekunden), aber sie darf die Haltezeiten **nicht**
+einrechnen — sonst ist das Level gelöst, sobald die Linie das Ziel trifft, und
+die Ausführung wertlos.
+*Achtung 2:* Der Replay-Sucher würfelt keine brauchbaren Bahnen. Bahn von Hand
+entwerfen, den Sucher nur noch die Haltezeiten finden lassen.
+
+**Magnete während des Laufs ziehen** · M — *abgeraten*
 Nicht nur an/aus, sondern mit der Maus verschieben.
-*Warum:* Maximale Direktheit. Achtung: konkurriert mit „Planen dann Spielen" —
-eins von beidem, nicht beides.
+*Warum nicht:* Klingt nach mehr Dynamik, entfernt aber eine Dimension statt eine
+hinzuzufügen — wer live korrigieren kann, plant nicht mehr, und übrig bleibt
+„zieh den Magneten dorthin, wo der Ball hin soll". Level 4 („ein Feld reicht
+400 px, also übergib") wäre damit hinfällig, Level 2 macht den Fallstrick zur
+Hauptmechanik. Das Perfide: **die Tests bleiben grün**, weil die Pars keine
+Magnete verschieben — die halbe Kampagne verlöre ihre Bedeutung, ohne dass eine
+Zusicherung bricht. Falls doch, dann streng begrenzt (ein Umsetzen pro Lauf),
+kostenpflichtig (Ladung + tote Ticks) und als Level-Eigenschaft, nie global.
+Die geplante Bahn oben erreicht dasselbe Ziel, ohne etwas wegzunehmen.
 
 **Gerichtetes Feld (Kegel/Strahl)** · M
 Wirkt nur in eine Richtung, drehbar.

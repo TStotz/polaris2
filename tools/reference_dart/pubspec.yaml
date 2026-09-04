@@ -1,4 +1,0 @@
-name: polaris_reference
-description: Pinned Dart reference implementation + golden-fixture generators.
-environment:
-  sdk: ^3.5.0
