@@ -31,6 +31,11 @@ var running := false
 ## Every tick's input mask, so a run can be replayed or shown as a ghost.
 var recording: Array[int] = []
 
+## Recent ball positions, oldest first, for the drawn trail. Presentation only:
+## it is written from the simulation's state and never read back into it.
+var _trail: Array[Vector2] = []
+const TRAIL_LENGTH := 14
+
 ## Optional schedule that drives the run instead of the keyboard, used to watch
 ## the level's proven replay.
 var _playback: Array = []
@@ -80,6 +85,7 @@ func _reset() -> void:
 	_leave_demo()
 	running = false
 	recording.clear()
+	_trail.clear()
 	world.setup(level, placed)
 	_hint = level.lesson
 	queue_redraw()
@@ -96,6 +102,7 @@ func _start(playback: Array = []) -> void:
 	_playback = playback
 	world.setup(level, placed)
 	recording.clear()
+	_trail.clear()
 	running = true
 	_hint = "Halte 1–%d" % world.magnets.size()
 
@@ -123,6 +130,10 @@ func _physics_process(_delta: float) -> void:
 
 	recording.append(mask)
 	world.step(mask)
+
+	_trail.append(Vector2(world.ball_x, world.ball_y))
+	if _trail.size() > TRAIL_LENGTH:
+		_trail.remove_at(0)
 
 	if world.outcome == SimWorld.Outcome.WON:
 		running = false
@@ -306,27 +317,23 @@ func _draw() -> void:
 	if level == null:
 		return
 
-	draw_rect(level.arena.grow(6.0), Color(PolarisTheme.MINUS, 0.05), true)
-	draw_rect(level.arena, PolarisTheme.BG_DEEP, true)
+	# Seconds since start, for the animated bits. It reaches the art layer only;
+	# [SimWorld] never sees a clock, which is what keeps runs reproducible.
+	var t := Time.get_ticks_msec() / 1000.0
 
-	var pulse := 1.0 + 0.05 * sin(Time.get_ticks_msec() / 400.0)
-	draw_rect(level.target, Color(PolarisTheme.TARGET, 0.12), true)
-	draw_rect(level.target.grow(2.0 * pulse), Color(PolarisTheme.TARGET, 0.85), false, 3.0)
-
+	BoardArt.draw_background(self, level.arena)
+	BoardArt.draw_frame(self, level.arena)
+	BoardArt.draw_target(self, level.target, t)
 	for solid: Rect2 in level.solids:
-		draw_rect(solid, PolarisTheme.WALL, true)
-		draw_rect(
-			Rect2(solid.position, Vector2(solid.size.x, 3)),
-			Color(PolarisTheme.WALL_EDGE, 0.85),
-			true
-		)
+		BoardArt.draw_solid(self, solid, PolarisTheme.WALL_EDGE)
 
 	_draw_movers()
 	_draw_magnets()
 	if _dragging >= 0 and _dragging < placed.size():
 		var von: SimLevel.MagnetSpec = placed[_dragging]
 		draw_line(Vector2(von.x, von.y), _drag_to, Color(PolarisTheme.ACCENT, 0.6), 2.0)
-	_draw_ball()
+	BoardArt.draw_ball(self, Vector2(world.ball_x, world.ball_y), SimWorld.BALL_RADIUS, _trail)
+	BoardArt.draw_vignette(self, level.arena)
 	_draw_hud()
 
 
@@ -346,65 +353,52 @@ func _draw_movers() -> void:
 		# tick_count is already past the last resolved tick, which is exactly the
 		# rect the contact solver used — so what is drawn is what the ball hit.
 		var rect := mover.rect_at(world.tick_count)
-		draw_rect(rect, PolarisTheme.WALL, true)
-		draw_rect(Rect2(rect.position, Vector2(rect.size.x, 3)), PolarisTheme.OK, true)
+		BoardArt.draw_solid(self, rect, PolarisTheme.OK)
 
 
 func _draw_magnets() -> void:
+	var t := Time.get_ticks_msec() / 1000.0
 	var all := level.magnets_for(placed)
+	var last_mask: int = recording[recording.size() - 1] if recording.size() > 0 else 0
+	var reversed_now := running and (last_mask & SimWorld.INVERT_BIT) != 0
+	var ball := Vector2(world.ball_x, world.ball_y)
+
 	for i in all.size():
 		var spec: SimLevel.MagnetSpec = all[i]
 		var pos := spec.position_at(world.tick_count)
 		if spec.moves():
-			# The whole line, not just where the magnet is now. The plan *is* the line;
-			# hiding it would leave the player nothing to aim with.
+			# The whole line, not just where the magnet is now. The plan *is* the
+			# line; hiding it would leave the player nothing to aim with.
 			var ende := Vector2(spec.x + spec.travel.x, spec.y + spec.travel.y)
 			draw_line(Vector2(spec.x, spec.y), ende, Color(PolarisTheme.INK_DIM, 0.45), 2.0)
 			draw_circle(Vector2(spec.x, spec.y), 4.0, Color(PolarisTheme.INK_DIM, 0.7))
 			draw_circle(ende, 4.0, Color(PolarisTheme.INK_DIM, 0.7))
-		var last_mask: int = recording[recording.size() - 1] if recording.size() > 0 else 0
-		var reversed_now := running and (last_mask & SimWorld.INVERT_BIT) != 0
-		# Show the polarity that is actually acting, not the one it was placed with —
-		# otherwise the reverse key has no visible effect at all.
+
+		# The polarity that is *acting*, not the one it was placed with, so the
+		# reverse key visibly turns the field around.
 		var acting_attract := spec.attract != reversed_now
-		var tint: Color = PolarisTheme.PLUS if acting_attract else PolarisTheme.MINUS
 		var charge: float = world.charges[i] if i < world.charges.size() else level.charge_seconds
 		var held := running and (last_mask & (1 << i)) != 0
 
-		draw_arc(pos, SimWorld.MAGNET_RADIUS, 0, TAU, 64, Color(tint, 0.10 if held else 0.045), 2.0)
-		# The inner ring is where the field actually beats gravity. Without it the
-		# outer circle reads as "this is what I can do", and a player placing a magnet
-		# that has to lift the ball gets no warning that 300px is far too far.
-		draw_arc(pos, SimWorld.LIFT_RADIUS, 0, TAU, 48, Color(tint, 0.22 if held else 0.13), 1.0)
-		if held:
-			for ring in 3:
-				var t := (ring + 1) / 3.0
-				draw_circle(pos, SimWorld.MAGNET_RADIUS * t, Color(tint, 0.045 * (1.0 - t)))
+		BoardArt.draw_magnet(
+			self, pos, acting_attract, held, charge <= 0.0, t,
+			SimWorld.MAGNET_RADIUS, SimWorld.LIFT_RADIUS
+		)
+		if held and charge > 0.0 and pos.distance_to(ball) < SimWorld.MAGNET_RADIUS:
+			BoardArt.draw_pull(self, pos, ball, acting_attract, t)
 
-		draw_circle(pos, PLACE_RADIUS, Color(tint, 0.35 if charge <= 0.0 else 1.0))
-		draw_circle(pos - Vector2(6, 7), 9.0, Color(Color.WHITE, 0.25))
 		if charge > 0.0:
 			draw_arc(
-				pos, PLACE_RADIUS + 7.0, -PI / 2.0,
+				pos, 30.0, -PI / 2.0,
 				-PI / 2.0 + TAU * (charge / level.charge_seconds),
 				32, PolarisTheme.ACCENT, 4.0, true
 			)
-		# Always numbered: the number is the key you press, so hiding it on fixed
-		# magnets only hid the control.
 		_label(
 			str(i + 1),
 			pos + Vector2(-5, 6),
 			PolarisTheme.BG if charge > 0.0 else PolarisTheme.INK_DIM,
 			17
 		)
-
-
-func _draw_ball() -> void:
-	var pos := Vector2(world.ball_x, world.ball_y)
-	draw_circle(pos + Vector2(0, 3), SimWorld.BALL_RADIUS, Color(0, 0, 0, 0.35))
-	draw_circle(pos, SimWorld.BALL_RADIUS, PolarisTheme.BALL)
-	draw_arc(pos, SimWorld.BALL_RADIUS, 0, TAU, 24, Color(PolarisTheme.BALL_EDGE, 0.9), 2.0, true)
-	draw_circle(pos - Vector2(5, 6), SimWorld.BALL_RADIUS * 0.34, Color(1, 1, 1, 0.8))
 
 
 func _draw_hud() -> void:
