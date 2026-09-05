@@ -43,7 +43,8 @@ scripts/sim/      die Simulation, engine-unabhängig (@tool)
 scripts/ui/
   game_root.gd      tauscht Menü und Spiel; die Startszene
   menu_screen.gd    Level-Auswahl, nach Feature gruppiert
-  play_screen.gd    Darstellung und Eingabe; alles per _draw
+  play_screen.gd    Ablauf und Eingabe; ruft BoardArt fürs Aussehen
+  board_art.gd      wie das Brett aussieht — darf `sin`, `Time`, Animation
   polaris_theme.gd  Palette, Font und der projektweite Theme
 scenes/game.tscn  die Hauptszene (Wurzel)
 scenes/menu.tscn  scenes/play.tscn
@@ -333,6 +334,40 @@ den Transport nur *zwischen* Tests.
 gibt hier weder Ausgabe noch schreibt es Dateien, weder mit `_init` noch mit
 `_initialize`. Das ist zweimal ausprobiert worden (einmal beim Raster-Spiel, einmal
 bei der Level-7-Suche); beides Mal umsonst. Alles läuft über den Editor.
+
+## Grafik: prozedural, in einer eigenen Datei
+
+`board_art.gd` zeichnet das Brett, `play_screen.gd` entscheidet den Ablauf. Die
+Trennung ist dieselbe Disziplin wie bei `SimWorld`: die Kunstschicht darf `sin`,
+`Time` und Animation pro Frame benutzen — alles, was in der Simulation verboten
+ist. Sie gibt dafür nie einen Wert zurück; jede Funktion nimmt entgegen, was sie
+zeichnen soll, und liefert nichts.
+
+**Variation kommt aus einem Hash der Position, nicht aus `randf()`.** Ein pro
+Frame gewürfelter Wert liesse die Wände flimmern; der Hash hält denselben Ziegel
+den ganzen Lauf lang in derselben Schattierung.
+
+Aufgebaut wird von hinten nach vorn: Verlauf, zwei Lagen ferner Blöcke
+(unterschiedlich gross, sonst liest es sich als Gitter), Rahmen, Ziel, Wände,
+Magnete, Ball mit Spur, Vignette. Jede Wand entsteht aus Schatten, Körper,
+Ziegelfugen, beleuchteter Oberkante, dunkler Unterkante und Kontur — die
+Oberkante ist das, was eine Plattform als etwas lesbar macht, auf dem man landet.
+
+**Das Magnetfeld zeigt seine Richtung, nicht nur seine Farbe.** Rot und Blau sind
+eine Konvention, die man erst lernen muss; Ringe und Funken, die nach **innen**
+laufen (Anziehen) oder nach **außen** (Abstoßen), sagen es ohne Legende. Dazu vier
+Pfeilspitzen am Rand des Magneten, die dieselbe Richtung zeigen — der Teil des
+Bildes, der auch bei Farbenblindheit übrig bleibt. Ist ein Magnet aktiv und die
+Kugel in Reichweite, läuft ein gestrichelter Strahl zwischen beiden, ebenfalls in
+Wirkrichtung; kein Strahl heißt „außerhalb der Reichweite" und beantwortet damit
+die Frage, warum nichts passiert.
+
+Gezeichnet wird die **wirkende** Polarität, nicht die gesetzte: `Shift` dreht die
+Strömung sichtbar um.
+
+Der **Rahmen** zeichnet die Seitenwände, die `SimWorld` jedem Level ohnehin
+hinzufügt und die vorher unsichtbar waren; unten bleibt er offen, weil dort
+wirklich kein Boden ist, und das rote Band sagt es.
 
 ## Die Editor-Cache-Falle
 
