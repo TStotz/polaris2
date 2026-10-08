@@ -1,4 +1,0 @@
-MIT Umpolen: 28 Siege
-BEST placement=(75,375) anziehen
-holds=[[0, 0, 55], [16, 30, 55]]
-ticks=59 hash=1901022321

@@ -11,3 +11,6 @@ tools/reference_dart/*.log
 # data/levels.json and tests/data/*.json are intentionally committed: the pack is
 # the shipped content, and the golden fixtures are the evidence that the port
 # matches the Dart original.
+
+# Zwischenstände des Musik-Skripts (tools/musik.py rendert sie neu)
+tools/audio/

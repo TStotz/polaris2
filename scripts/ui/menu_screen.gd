@@ -14,6 +14,10 @@ extends Node2D
 
 signal level_chosen(level: SimLevel)
 
+## Open the build mode. It is not a row in the list on purpose: the list is the
+## campaign, and a tool that makes levels does not belong among the levels.
+signal build_requested
+
 const ROW_HEIGHT := 44.0
 const GROUP_GAP := 34.0
 const LEFT := 90.0
@@ -109,6 +113,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_move(-1)
 		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 			_choose()
+		KEY_B:
+			build_requested.emit()
 		KEY_ESCAPE:
 			get_tree().quit()
 
@@ -146,6 +152,9 @@ func _row_at(y: float) -> int:
 # --- Drawing ----------------------------------------------------------------
 
 func _draw() -> void:
+	# Back to the default world. The menu belongs to no level, and leaving the last
+	# level's scenery on it would make the campaign list look like part of that board.
+	PolarisTheme.use("")
 	draw_rect(Rect2(-4000, -4000, 8000, 8000), PolarisTheme.BG, true)
 
 	_label("POLARIS", Vector2(LEFT, 96), PolarisTheme.INK, 52)
@@ -180,7 +189,7 @@ func _draw() -> void:
 		_label(level.lesson, Vector2(LEFT + 190, y), Color(ink, 0.7), 13)
 
 	_label(
-		"↑↓ wählen   Enter starten   Esc beenden",
+		"↑↓ wählen   Enter starten   B Bau-Modus   Esc beenden",
 		Vector2(LEFT, _footer_y), PolarisTheme.INK_DIM, 13
 	)
 

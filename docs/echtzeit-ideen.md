@@ -144,6 +144,21 @@ hier passiert es einfach sofort, und das ist richtig.
 Halten genau einen Durchgang.
 *Warum:* Verbietet Herumprobieren an Ort und Stelle. Erzwingt Festlegung.
 
+**Sprungfelder** · S — **gebaut** (`SimLevel.springs`, Werkzeug `8` im Bau-Modus)
+*Warum:* Eine Fläche, die schiebt, ohne ein Magnet zu sein — der Ball springt, und
+der Spieler plant darum herum statt damit. Details in `CLAUDE.md` unter
+„Sprungfelder". Die Regel, die dabei herauskam: **setzen statt addieren**, sonst
+hängt der Sprung davon ab, wie schnell der Ball ankam, und keine Route durch die
+Platte ist planbar.
+
+**Schrägen und freie Wandformen** · S — **gebaut** (`SimLevel.polygons`, Werkzeug `9`)
+*Warum:* Rampen geben Tempo ohne Magnet, Trichter sammeln die Kugel an einer Stelle,
+eine schräge Prallwand lenkt um statt nur zurückzuwerfen. Billiger als gedacht: der
+Abstoß war schon immer entlang eines beliebigen Normalenvektors geschrieben, neu war
+nur die Suche nach dem nächsten Punkt. Details in `CLAUDE.md` unter „Polygone".
+Eine Folge fürs Design, die man kennen sollte: **auf einer Schräge bleibt nichts
+liegen** — das Modell hat keine Haftreibung.
+
 **Oberflächen: Eis, Klebstoff, Gummi** · S — *empfohlen*
 Reibung und Sprungkraft pro Fläche.
 *Warum:* Drei Zahlen, sofort lesbar an der Farbe, riesiger Hebel fürs
@@ -183,8 +198,12 @@ Pro Zone oder per Schalter.
 
 ## D · Gefahr und Scheitern
 
-**Stacheln / Killzonen** · S
+**Stacheln / Killzonen** · S — **gebaut** (`SimLevel.hazards`, Werkzeug `2` im Bau-Modus)
 *Warum:* Der einfachste Weg, einen Weg wirklich zu verbieten.
+Umgesetzt als reiner Auslöser mit eigener Explosion; Details in `CLAUDE.md` unter
+„Zacken". Die Regel, die dabei herauskam: **das Rechteck ist die Gefahr**, die
+Zähne sind nur ihr Bild — deshalb trägt das Band einen Schleier über seine ganze
+Fläche, sonst verspräche es Sicherheit in den Lücken.
 
 **Steigendes Wasser / Lava** · M
 Der Level füllt sich von unten.
@@ -239,6 +258,104 @@ Dokument.
 
 **Zeitlupe im Beinahe-Moment** · S
 *Warum:* Macht knappe Situationen lesbar und fühlbar zugleich.
+
+---
+
+## G · Welten — was die Kampagne gliedert
+
+Alles oben sind *Mechaniken*. Was fehlte, sind **Welten**: Bündel, die einer Reihe
+von Brettern ein gemeinsames Bild, eine Palette und ein Verbot geben. Eine Welt
+erfindet nichts Neues — sie sortiert, was auf dieser Liste schon steht, und macht
+aus einer Aufzählung eine Reise.
+
+**Das Verbot ist dabei so wichtig wie die Zutat.** Im Wrack gibt es keinen Boden,
+im Reaktor keine Ruhe, im Sturm keine Reibung. Ein Verbot erzeugt mehr Level als
+eine Zutat, weil es jedes bekannte Motiv noch einmal neu stellt.
+
+| Welt | Bild | bündelt | Verbot |
+|---|---|---|---|
+| **Die Werft** | Kräne, Träger, Laufbänder | Förderbänder, bewegte Plattformen, Elektromagnete als Möblierung | nichts liegt still |
+| **Der Schacht** | Abstieg ins Dunkle | senkrechte Bretter, bröckelnde Kanten, steigendes Wasser | kein Zurück |
+| **Der Reaktor** | alles im Takt, Strahlung als Killzone | kippende Schwerkraft, nachladende Ladung, Rhythmus | keine Ruhe |
+| **Das Wrack** | Schwerelosigkeit, Trümmerfeld | freier Flug, Ring-Feld, mehrere Bälle | kein Boden |
+| **Die Sortieranlage** | Farben, Platten, Tore | Platten & Tore, Ball-Polarität, Eskorte | kein freier Weg |
+| **Der Sturm** | Außenhülle, Wind, Eis | Windzonen, Oberflächen, zerbrechlicher Ball | keine Reibung |
+
+**Die Paletten sind gebaut.** `SimLevel.theme` nennt eine der sieben Welten oben,
+im Bau-Modus als erstes Feld einstellbar, Details in `CLAUDE.md` unter „Welten".
+Die Regel, die dabei herauskam und die bleiben muss: **eine Welt streicht die
+Kulisse, nie das Vokabular** — Hintergrund, ferne Blöcke, Wandflächen und das Licht
+am Boden ja; Magnetfarben, Ziel, Checkpoint-Mint und Zonenfarben nein. Der erste
+Reaktor war minzgrün und hat damit die Tore verschluckt.
+
+**Und die Kulisse ist gebaut.** Eine Welt ist nicht mehr nur eine Palette, sondern
+ein Stapel **Bänder**: waagerechte Scheiben der Arena mit je einem eigenen Motiv, und
+wer das Brett hochspielt, geht durch sie hindurch. Unter Deck Spanten und Bullaugen
+mit der See dahinter, darüber der Laderaum, über dem Deck die Kranausleger.
+
+| Welt | oben | Mitte | unten |
+|---|---|---|---|
+| **Polaris** | Sterne, der Polarstern | Rumpfbeplankung | Decksplatten |
+| **Werft** | Kranausleger, Haken am Seil | Laderaum: Kisten, Ketten | Spanten, Bullaugen, ein Fisch |
+| **Schacht** | Fördergerüst, Leiter | Gestein, Sickerwasser | stehendes Wasser, ersoffene Rohre |
+| **Reaktor** | Galerie, mitlaufende Lampen | der Kessel, Steuerstäbe | Kühlkreis mit Puls |
+| **Wrack** | Sterne, ein Planetenrand | treibende Trümmer | Rumpfbruch, blanke Spanten |
+| **Sortieranlage** | Einläufe | Bänder, Rollen, Buchten | gefüllte Schächte |
+| **Sturm** | getriebene Wolke, Wetterleuchten | Takelage, Vereisung | Außenhaut, Windstriche |
+
+Die Anteile sind Brüche der Arenahöhe, nicht Pixel — dieselbe Welt erzählt dieselbe
+Geschichte auf einem 660er und auf einem 2400er Brett. **Der Gewinn liegt auf den
+hohen Brettern:** im Lauf folgt die Kamera bei 1:1, also wechselt die Kulisse
+*während* des Versuchs und sagt, wie weit man gekommen ist, ohne ein Wort — und
+während der Spieler beschäftigt ist, was ein HUD nicht kann. Details in `CLAUDE.md`
+unter „Welten".
+
+**Ein Band ist auch eine Bauvorgabe.** Wenn das oberste Band der Werft Kranausleger
+zeigt, gehört dorthin ein Brett mit hängenden Plattformen; wenn das unterste Band des
+Schachts Wasser ist, gehört dorthin ein steigender Pegel. Die Kulisse ist damit kein
+Anstrich mehr, sondern die Liste der Bretter, die eine Welt noch braucht.
+
+Was weiterhin fehlt, ist die *Level-Geometrie* pro Welt — noch benutzt kein
+Kampagnenlevel eine Welt; eine Zeile pro Brett (`level.theme = "Werft"`) würde das
+ändern. Das Menü gruppiert nach `SimLevel.feature`, also kostet eine neue Welt dort
+keine Zeile.
+
+---
+
+## H · Motive — woher die Levelzahl wirklich kommt
+
+Der wichtigste Abschnitt in diesem Dokument, und der, der am längsten gefehlt hat.
+Nicht neue Mechaniken machen eine Kampagne, sondern wiederkehrende **Formen**, die
+man mit jeder Mechanik einmal durchspielt.
+
+- **Der Korridor** — rollen und ein Fenster treffen. Level 1, 3, 11s Eröffnung.
+- **Der Schacht** — senkrecht, im Takt. Level 10, 14.
+- **Die Übergabe** — ein Magnet reicht nicht weit genug, gib an den nächsten ab.
+  Level 4, und der Kern jeder langen Reise.
+- **Der Orbit** — parken und im richtigen Moment loslassen. Braucht das Ring-Feld.
+- **Die Schleuse** — rein, warten, raus: zwei Entscheidungen an einem Ort.
+  Level 11s Tunnelmund.
+- **Das Fenster** — die Lücke bewegt sich, nicht du. Level 6, die Brücke in 11.
+- **Der Rückwurf** — nach rechts, um nach links zu kommen. Level 7, Level 14s
+  Zickzack.
+- **Der Verzicht** — du hast Ladung übrig, aber kein Ziel dafür; sparen ist der Zug.
+  Bisher von keinem Brett benutzt.
+
+**Acht Motive mal sechs Welten sind achtundvierzig Bretter, ohne eine einzige neue
+Regel** — und jedes ist erkennbar anders, weil Motiv und Welt unabhängig
+variieren. Genau das meint die Falle „Alles gleichzeitig" weiter unten von der
+anderen Seite: *stapeln* erzeugt keine Level, *kombinieren* schon.
+
+Realistische Form für ein kleines vollständiges Spiel: **5–6 Welten à 6–8 Bretter,
+davon ein bis zwei lange Reisen pro Welt als Kapitelabschluss.** 35–45 Level, und
+Bestzeiten als Wiederspielgrund.
+
+**Die Länge einer Reise hängt an den Tasten.** Fünf Stationen sind fünf Magnete,
+und sechs Tasten sind das Maximum, das eine Hand hält (`SimWorld.HOLD_KEYS`). Was
+den Deckel wirklich abnimmt, ist **Magnet-Rückgabe**: ein Tor gibt den verbrauchten
+Magneten auf *derselben* Taste zurück, man hält immer `1`. Dann sind zehn Stationen
+so spielbar wie fünf. Kostet ein neues Konzept — ein Magnet braucht dann ein Ende
+und nicht nur einen Geburtstick.
 
 ---
 

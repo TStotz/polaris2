@@ -1,0 +1,31 @@
+Level 13 "Sprungfolge" — 3 Tore, Budget 1, Feldstaerke 6000
+Stufe 1: (90,785) stoesst, geboren 0, halten 20..112
+Stufe 2: nichts Robustes von hier aus — Stufe 1 wird neu gesucht
+  (verworfen: (90,785) halten 20..112)
+Stufe 1: (90,835) stoesst, geboren 0, halten 20..112
+Stufe 2: (468,441) stoesst, geboren 84, halten 109..201
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (468,441) halten 109..201)
+Stufe 2: (618,441) zieht, geboren 84, halten 109..153
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (618,441) halten 109..153)
+Stufe 2: (618,641) stoesst, geboren 84, halten 134..226
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (618,641) halten 134..226)
+Stufe 2: (518,391) stoesst, geboren 84, halten 109..201
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (518,391) halten 109..201)
+Stufe 2: (568,391) stoesst, geboren 84, halten 109..201
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (568,391) halten 109..201)
+Stufe 2: (618,391) stoesst, geboren 84, halten 109..201
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (618,391) halten 109..201)
+Stufe 2: (618,691) stoesst, geboren 84, halten 134..226
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (618,691) halten 134..226)
+Stufe 2: (668,441) stoesst, geboren 84, halten 109..201
+Stufe 3: nichts Robustes von hier aus — Stufe 2 wird neu gesucht
+  (verworfen: (668,441) halten 109..201)
+
+Kette unvollstaendig: 1 von 4 Stufen. Siehe Diagnose oben.
